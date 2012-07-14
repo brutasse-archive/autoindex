@@ -1,2 +1,5 @@
+beautifulsoup4
 args
+pip
 pyinotify
+requests

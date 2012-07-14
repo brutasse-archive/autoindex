@@ -4,6 +4,7 @@ import urlparse
 import sys
 
 from . import watcher, indexer, mirror
+from .utils import error
 
 ACTIONS = ['mirror', 'watch', 'index']
 
@@ -13,15 +14,10 @@ Available actions: watch, index, mirror.""" % sys.argv[0]
     sys.exit(1)
 
 
-def error(err):
-    print err
-    sys.exit(1)
-
-
 def main():
     action = None
     directory = None
-    index_server = 'https://pypi.python.org'
+    index_server = 'http://pypi.python.org'
     index_set = False
 
     for name, target in args.grouped.iteritems():
@@ -64,15 +60,9 @@ def main():
         if parsed.scheme not in ['http', 'https']:
             error("Invalid URL scheme: {0}".format(repr(parsed.scheme)))
 
-        auth = None
-        if '@' in parsed.netloc:
-            auth, netloc = parsed.netloc.split('@')
-            parsed = list(parsed)
-            parsed[1] = netloc
-        if ':' not in auth:
-            error("Unable to decode auth information: {0}".format(auth))
-        auth = auth.split(':')
+        parsed = list(parsed)
+        parsed[2] = '/simple/'
 
         index_url = urlparse.urlunparse(parsed)
-        mirror.mirror(directory, index_url, auth)
+        mirror.mirror(directory, index_url)
     sys.exit(0)
