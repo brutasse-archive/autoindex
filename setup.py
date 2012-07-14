@@ -33,4 +33,7 @@ setup(
     ],
     zip_safe=False,
     install_requires=install_requires,
+    scripts=[
+        'scripts/autoindex',
+    ]
 )
