@@ -22,7 +22,7 @@ authentication. Then to use it with pip::
 
     pip install -i https://user:password@pypi.example.com/index
 
-Or, in a ``requirements.txt`` file:
+Or, in a ``requirements.txt`` file::
 
     --index-url=https://user:password@pypi.example.com/index
 
