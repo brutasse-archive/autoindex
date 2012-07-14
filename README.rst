@@ -4,6 +4,8 @@ Autoindex
 Autoindex lets you create a private index for pip, similar to `PyPI`_ but with
 only the packages you need **and** additional private packages.
 
+.. _PyPI: http://pypi.python.org/pypi
+
 This lets you:
 
 * Mirror the libraries you use (which you should absolutely do since some tend
