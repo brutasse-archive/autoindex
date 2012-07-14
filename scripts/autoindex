@@ -1,5 +1,5 @@
 #! /usr/bin/env python2
-import autoindex
+from autoindex.main import main
 
 if __name__ == '__main__':
-    autoindex.main()
+    main()
