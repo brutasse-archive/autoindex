@@ -170,3 +170,4 @@ def index(directory):
         ))
         with open(os.path.join(package_dir, 'index.html'), 'w') as index:
             index.write(DIST_PAGE.format(dist=package, links=links))
+    logger.info("Indexing done")
