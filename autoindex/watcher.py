@@ -1,4 +1,5 @@
 import logging
+import os
 import signal
 
 from pip.download import is_archive_file
@@ -10,9 +11,19 @@ logger = logging.getLogger(__name__)
 
 
 class IndexProcess(ProcessEvent):
+    def __init__(self, wm, mask):
+        self.wm = wm
+        self.mask = mask
+
+    def update_watch(self, directory):
+        self.wm.add_watch(directory, mask=self.mask)
+
     def process_IN_CREATE(self, event):
         logger.debug("Created {0}".format(event.pathname))
-        self.index_alarm(event)
+        if os.path.isdir(event.pathname):
+            self.update_watch(event.pathname)
+        else:
+            self.index_alarm(event)
 
     def process_IN_MODIFY(self, event):
         logger.debug("Modified {0}".format(event.pathname))
@@ -31,13 +42,14 @@ class IndexProcess(ProcessEvent):
 def watch(directory):
     logger.info("Watching {0}".format(directory))
 
-    wm = WatchManager()
     flags = EventsCodes.ALL_FLAGS
     mask = flags['IN_CREATE'] | flags['IN_MODIFY'] | flags['IN_DELETE']
 
-    process = IndexProcess()
+    wm = WatchManager()
+    wm.add_watch(directory, mask, rec=True)
+
+    process = IndexProcess(wm, mask)
     notifier = Notifier(wm, process)
-    wm.add_watch(directory, mask, rec=False)
 
     def update_index(*args):
         index(directory)

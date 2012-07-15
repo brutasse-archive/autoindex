@@ -20,11 +20,11 @@ public.
 If you need security, just serve that index on SSL + HTTP Basic
 authentication. Then to use it with pip::
 
-    pip install -i https://user:password@pypi.example.com/index
+    pip install -i https://user:password@pypi.example.com
 
 Or, in a ``requirements.txt`` file::
 
-    --index-url=https://user:password@pypi.example.com/index
+    --index-url=https://user:password@pypi.example.com
 
 Usage
 -----

@@ -6,7 +6,7 @@ import urlparse
 from bs4 import BeautifulSoup
 from pip.download import is_archive_file
 
-from .utils import error
+from .utils import error, mkdir
 
 DIST_URL = "{index}{dist}/"
 
@@ -36,13 +36,13 @@ class Mirror(object):
     def __init__(self, directory, index_url):
         self.directory = directory
         self.index_url = index_url
-        self.urls = set()
-        self.existing = set()
 
-    def extract_links(self, urls, dist, found=set()):
+    def extract_links(self, urls, dist, found=None):
         """
         Recursively extract download links from a URL.
         """
+        if found is None:
+            found = set()
         for url in urls:
             response = requests.get(url)
             if response.status_code != 200:
@@ -81,7 +81,10 @@ class Mirror(object):
 
     def fetch_dist(self, dist):
         logger.info("Mirroring {0}".format(dist))
-        files = set(os.listdir(self.directory))
+        directory = os.path.join(self.directory, dist)
+        mkdir(directory)
+
+        files = set(os.listdir(directory))
 
         url = DIST_URL.format(index=self.index_url, dist=dist)
         links = self.extract_links([url], dist)
@@ -99,6 +102,6 @@ class Mirror(object):
                 ))
                 continue
 
-            file_name = os.path.join(self.directory, download.rsplit('/')[-1])
+            file_name = os.path.join(directory, download.rsplit('/')[-1])
             with open(file_name, 'wb') as f:
                 f.write(response.content)

@@ -7,6 +7,8 @@ from contextlib import closing
 from pip.download import is_archive_file
 from pip.util import splitext
 
+from .utils import mkdir
+
 logger = logging.getLogger(__name__)
 
 DIST_PAGE = """<!doctype html>
@@ -20,7 +22,7 @@ DIST_PAGE = """<!doctype html>
  </body>
 </html>"""
 
-DIST = """  <a href="../../{package}">{package}</a><br>"""
+DIST = """  <a href="{package}">{package}</a><br>"""
 
 INDEX_PAGE = """<!doctype html>
 <html>
@@ -123,46 +125,44 @@ def int_maybe(value):
         return value
 
 
-def mkdir(path):
-    """Ensures a directory exists"""
-    try:
-        os.mkdir(path)
-    except OSError:
-        pass
-
-
 def index(directory):
     logger.info("Indexing {0}".format(directory))
-    files = os.listdir(directory)
+
+    dirs = set()
+    for d in os.listdir(directory):
+        full_dir = os.path.join(directory, d)
+        if os.path.isdir(full_dir):
+            dirs.add(full_dir)
+
     dist_info = {}
+    for dist_dir in dirs:
+        files = os.listdir(dist_dir)
 
-    # Collect all distributions
-    for f in files:
-        if is_archive_file(f):
-            full_path = os.path.join(directory, f)
-            name, version = metadata(full_path)
-            dist_info.setdefault(name, []).append([version, f])
+        # Collect all distributions
+        for f in files:
+            if is_archive_file(f):
+                full_path = os.path.join(dist_dir, f)
+                name, version = metadata(full_path)
+                dist_info.setdefault(name, []).append([version, f])
 
-    # Sort by version numbers
-    for package, versions in dist_info.iteritems():
-        dist_info[package] = sorted(
-            versions, key=lambda d: map(int_maybe, d[0].split('.')),
-        )
+        # Sort by version numbers
+        for package, versions in dist_info.iteritems():
+            dist_info[package] = sorted(
+                versions, key=lambda d: map(int_maybe, d[0].split('.')),
+            )
 
     # Write index
     logger.debug("Writing index")
-    index_dir = os.path.join(directory, 'index')
-    mkdir(index_dir)
 
     index_links = "\n".join((
         INDEX_LINK.format(dist=dist) for dist in sorted(dist_info)
     ))
-    with open(os.path.join(index_dir, 'index.html'), 'w') as index:
+    with open(os.path.join(directory, 'index.html'), 'w') as index:
         index.write(INDEX_PAGE.format(links=index_links))
 
     for package, version in dist_info.iteritems():
         logger.debug("Writing index for {0}".format(package))
-        package_dir = os.path.join(index_dir, package)
+        package_dir = os.path.join(directory, package)
         mkdir(package_dir)
 
         links = "\n".join((
