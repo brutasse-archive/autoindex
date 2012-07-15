@@ -142,7 +142,11 @@ def index(directory):
         for f in files:
             if is_archive_file(f):
                 full_path = os.path.join(dist_dir, f)
-                name, version = metadata(full_path)
+                try:
+                    name, version = metadata(full_path)
+                except tarfile.ReadError:
+                    logger.info("Corrupted archive: {0}".format(full_path))
+                    continue
                 dist_info.setdefault(name, []).append([version, f])
 
         # Sort by version numbers
