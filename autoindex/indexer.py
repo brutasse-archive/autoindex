@@ -145,8 +145,13 @@ def index(directory):
                 full_path = os.path.join(dist_dir, f)
                 try:
                     name, version = metadata(full_path)
-                except tarfile.ReadError:
+                except (tarfile.ReadError, zipfile.BadZipfile):
                     logger.info("Corrupted archive: {0}".format(full_path))
+                    continue
+                except ValueError:
+                    logger.error(
+                        "Unable to extract info: {0}".format(full_path)
+                    )
                     continue
                 dist_info.setdefault(name, []).append([version, f])
 
