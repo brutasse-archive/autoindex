@@ -92,6 +92,7 @@ def metadata(distribution):
         '.tar.bz2': TarArchive,
         '.tar.tgz': TarArchive,
         '.tar': TarArchive,
+        '.tgz': TarArchive,
     }[ext](distribution)
 
     with closing(archive) as arc:
