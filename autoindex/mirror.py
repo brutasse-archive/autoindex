@@ -103,6 +103,7 @@ class Mirror(object):
                 ))
                 continue
 
-            file_name = os.path.join(directory, download.rsplit('/')[-1])
+            file_name = os.path.join(directory,
+                                     download.rsplit('/')[-1].split('?')[0])
             with open(file_name, 'wb') as f:
                 f.write(response.content)
