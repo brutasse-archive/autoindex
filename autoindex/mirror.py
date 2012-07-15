@@ -62,7 +62,9 @@ class Mirror(object):
                     potential = urlparse.urljoin(url, potential)
                 potential = urlparse.urlparse(potential)
 
-                if dist in potential.path and is_archive_file(potential.path):
+                if (dist in potential.path and
+                    is_archive_file(potential.path) and
+                    not potential.path.endswith('.mpkg.zip')):
                     potential = list(potential)
                     potential[5] = ''
                     found.add(urlparse.urlunparse(potential))
