@@ -65,7 +65,7 @@ class Mirror(object):
                 if (dist in potential.path and
                     is_archive_file(potential.path) and
                     not potential.path.endswith('.mpkg.zip') and
-                    not potential.path.endswith('-i386.tar.gz')):
+                    not ".macosx-10." in potential.path):
                     potential = list(potential)
                     potential[5] = ''
                     found.add(urlparse.urlunparse(potential))
