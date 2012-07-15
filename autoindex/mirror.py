@@ -71,7 +71,25 @@ class Mirror(object):
         return found
 
     def fetch_dist(self, dist):
-        print "Fetching {0}".format(dist)
+        print "Mirroring {0}".format(dist)
+        files = set(os.listdir(self.directory))
 
         url = DIST_URL.format(index=self.index_url, dist=dist)
         links = self.extract_links([url], dist)
+
+        to_download = [
+            link for link in links if link.rsplit('/')[-1] not in files
+        ]
+
+        for download in to_download:
+            print "Fetching {0}".format(download)
+            response = requests.get(download)
+            if not response.status_code == 200:
+                print "Error fetching {0}, status {1}".format(
+                    download, response.status_code,
+                )
+                continue
+
+            file_name = os.path.join(self.directory, download.rsplit('/')[-1])
+            with open(file_name, 'wb') as f:
+                f.write(response.content)
