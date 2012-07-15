@@ -65,13 +65,13 @@ is as simple as ``scp``'ing a file to the autoindex dir::
 
     /path/to/autoindex -d /var/www/autoindex watch
 
-(Put this on a process supervisor like supervisor or circus, cause it may
-crash.)
+(Put this on a process supervisor like supervisor or circus in case it
+crashes.)
 
 If you can't do that for some reason, just periodically regenerate the index::
 
     /path/to/autoindex -d /var/www/autoindex index
 
-If you want to log new releases / stuff to Sentry, just install ``raven`` in
-the same environment as ``autoindex`` and run the processes with a
-``SENTRY_DSN`` environment variable.
+If you want to log crashes to Sentry, just install ``raven`` in the same
+environment as ``autoindex`` and run the processes with a ``SENTRY_DSN``
+environment variable.
