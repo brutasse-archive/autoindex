@@ -1,3 +1,4 @@
+import logging
 import os
 import requests
 import urlparse
@@ -9,9 +10,11 @@ from .utils import error
 
 DIST_URL = "{index}{dist}/"
 
+logger = logging.getLogger(__name__)
+
 
 def mirror(directory, index_url):
-    print "Mirroring {0} to {1}".format(index_url, directory)
+    logger.info("Mirroring {0} to {1}".format(index_url, directory))
 
     mirror_file = os.path.join(directory, 'mirror')
 
@@ -36,18 +39,20 @@ class Mirror(object):
         self.urls = set()
         self.existing = set()
 
-    def extract_links(self, urls, dist, found=set(), additional=set()):
+    def extract_links(self, urls, dist, found=set()):
         """
         Recursively extract download links from a URL.
         """
         for url in urls:
             response = requests.get(url)
             if response.status_code != 200:
-                print "Yo response WTF"
-                print response, url
+                logger.info("Non-200 response from {url}: {code}".format(
+                    url=url, code=response.status_code,
+                ))
                 continue
 
             soup = BeautifulSoup(response.content)
+            additional = set()
             for link in soup.find_all('a'):
                 if not 'href' in link.attrs:
                     continue
@@ -63,15 +68,17 @@ class Mirror(object):
                     found.add(urlparse.urlunparse(potential))
                     continue
 
-                if 'rel' in link.attrs and link.attrs['rel'] == [u'download'] and not is_archive_file(link.attrs['href']):
-                    print "Download URL {0}".format(link.attrs['href'])
+                if ('rel' in link.attrs and
+                    link.attrs['rel'] == [u'download'] and
+                    not is_archive_file(link.attrs['href'])):
+                    logger.debug("Download URL {0}".format(link.attrs['href']))
                     additional.add(urlparse.urlunparse(potential))
 
-            found = found.union(self.extract_links(additional, dist, additional=set()))
+            found = found.union(self.extract_links(additional, dist))
         return found
 
     def fetch_dist(self, dist):
-        print "Mirroring {0}".format(dist)
+        logger.info("Mirroring {0}".format(dist))
         files = set(os.listdir(self.directory))
 
         url = DIST_URL.format(index=self.index_url, dist=dist)
@@ -82,12 +89,12 @@ class Mirror(object):
         ]
 
         for download in to_download:
-            print "Fetching {0}".format(download)
+            logger.info("Fetching {0}".format(download))
             response = requests.get(download)
             if not response.status_code == 200:
-                print "Error fetching {0}, status {1}".format(
+                logger.error("Error fetching {0}, status {1}".format(
                     download, response.status_code,
-                )
+                ))
                 continue
 
             file_name = os.path.join(self.directory, download.rsplit('/')[-1])

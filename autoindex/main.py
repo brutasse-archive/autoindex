@@ -1,4 +1,5 @@
 import args
+import logging
 import os
 import urlparse
 import sys
@@ -8,13 +9,32 @@ from .utils import error
 
 ACTIONS = ['mirror', 'watch', 'index']
 
+SILENCE_LOGGERS = [
+    "requests.packages.urllib3.connectionpool",
+]
+
+
 def show_help():
     print """Usage: %s -d directory [-i indexserver] action
 Available actions: watch, index, mirror.""" % sys.argv[0]
     sys.exit(1)
 
 
+class SilenceFilter(logging.Filter):
+    def filter(self, record):
+        return 0
+filter_ = SilenceFilter('silence')
+
+
 def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s %(asctime)s %(name)s: %(message)s",
+    )
+    for logger in SILENCE_LOGGERS:
+        log = logging.getLogger(logger)
+        log.addFilter(filter_)
+
     action = None
     directory = None
     index_server = 'http://pypi.python.org'
