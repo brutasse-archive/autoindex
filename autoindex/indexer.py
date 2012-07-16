@@ -126,7 +126,7 @@ def int_maybe(value):
         return value
 
 
-def index(directory):
+def index(directory, only=None):
     logger.info("Indexing {0}".format(directory))
 
     dirs = set()
@@ -135,9 +135,16 @@ def index(directory):
         if os.path.isdir(full_dir):
             dirs.add(full_dir)
 
+    if only is None:
+        only = dirs
+
     dist_info = {}
-    for dist_dir in dirs:
-        files = os.listdir(dist_dir)
+    for dist_dir in only:
+        try:
+            files = os.listdir(dist_dir)
+        except OSError:
+            logger.info("Unable to index {0}".format(dist_dir))
+            continue
 
         # Collect all distributions
         for f in files:
@@ -165,7 +172,7 @@ def index(directory):
     logger.debug("Writing index")
 
     index_links = "\n".join((
-        INDEX_LINK.format(dist=dist) for dist in sorted(dist_info)
+        INDEX_LINK.format(dist=dist.rsplit('/')[-1]) for dist in sorted(dirs)
     ))
     with open(os.path.join(directory, 'index.html'), 'w') as index:
         index.write(INDEX_PAGE.format(links=index_links))

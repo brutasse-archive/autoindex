@@ -14,6 +14,7 @@ class IndexProcess(ProcessEvent):
     def __init__(self, wm, mask):
         self.wm = wm
         self.mask = mask
+        self.queue = set()
 
     def update_watch(self, directory):
         self.wm.add_watch(directory, mask=self.mask)
@@ -36,6 +37,7 @@ class IndexProcess(ProcessEvent):
     def index_alarm(self, event):
         if is_archive_file(event.pathname):
             logger.debug("Queuing indexing")
+            self.queue.add(os.path.dirname(event.pathname))
             signal.setitimer(signal.ITIMER_REAL, 5)
 
 
@@ -52,7 +54,11 @@ def watch(directory):
     notifier = Notifier(wm, process)
 
     def update_index(*args):
-        index(directory)
+        while process.queue:
+            # This is slightly sub-optimal, would be better to pop all
+            # elements at once but this operation needs to be atomic.
+            dist_dir = process.queue.pop()
+            index(directory, only=[dist_dir])
 
     signal.signal(signal.SIGALRM, update_index)
     notifier.loop()
