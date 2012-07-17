@@ -3,6 +3,7 @@ import os
 import requests
 import urlparse
 
+from HTMLParser import HTMLParseError
 from bs4 import BeautifulSoup
 from pip.download import is_archive_file
 
@@ -51,7 +52,11 @@ class Mirror(object):
                 ))
                 continue
 
-            soup = BeautifulSoup(response.content)
+            try:
+                soup = BeautifulSoup(response.content)
+            except HTMLParseError:
+                logger.debug("Parse error: {0}".format(url))
+                continue
             additional = set()
             for link in soup.find_all('a'):
                 if not 'href' in link.attrs:
